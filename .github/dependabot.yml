@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: "npm" # for frontend dependencies
+    directory: "/frontend"  
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "build"
+    target-branch: "dependabotchanges"
+    open-pull-requests-limit: 100
