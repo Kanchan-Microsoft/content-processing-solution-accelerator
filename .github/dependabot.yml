@@ -20,7 +20,7 @@ updates:
    open-pull-requests-limit: 100
 
  - package-ecosystem: "pip"
-   directory: "/src/ContentProcessorAPI"
+   directory: "/src/ContentProcessorAPI/app"
    schedule:
      interval: "monthly"
    commit-message:
