@@ -4,10 +4,10 @@ import logging
 from unittest import mock
 import pytest
 from dotenv import load_dotenv
-from src.ContentProcessor.src.libs.base.application_main import AppMainBase
-from src.ContentProcessor.src.libs.application.application_context import AppContext
-from src.ContentProcessor.src.libs.application.application_configuration import AppConfiguration
-from src.ContentProcessor.src.libs.azure_helper.app_configuration import AppConfigurationHelper
+from ContentProcessor.src.libs.base.application_main import AppMainBase
+from ContentProcessor.src.libs.application.application_context import AppContext
+from ContentProcessor.src.libs.application.application_configuration import AppConfiguration
+from ContentProcessor.src.libs.azure_helper.app_configuration import AppConfigurationHelper
 
 
 class TestAppMainBase:
