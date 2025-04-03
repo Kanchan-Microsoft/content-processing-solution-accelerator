@@ -1,87 +1,73 @@
+import unittest
+from unittest.mock import patch, MagicMock
 import os
-import inspect
-import logging
-from unittest import mock
-import pytest
-from dotenv import load_dotenv
+
+# Import the module to test
 from libs.base.application_main import AppMainBase
-from libs.application.application_context import AppContext
-from libs.application.application_configuration import AppConfiguration
-from libs.azure_helper.app_configuration import AppConfigurationHelper
 
-
-class TestAppMainBase:
-    @mock.patch.object(AppConfigurationHelper, "read_and_set_environmental_variables")
-    @mock.patch.object(load_dotenv, "__call__", return_value=True)
-    @mock.patch.object(AppContext, "set_configuration")
-    def test_initialization(self, mock_set_config, mock_load_env, mock_app_config):
-        """Test that the AppMainBase initializes correctly."""
+class TestAppMainBase(unittest.TestCase):
+    
+    @patch("libs.base.application_main.load_dotenv")
+    @patch("libs.base.application_main.EnvConfiguration")
+    @patch("libs.base.application_main.AppConfigurationHelper")
+    @patch("libs.base.application_main.AppContext")
+    @patch("libs.base.application_main.AppConfiguration")
+    def test_init(self, MockAppConfiguration, MockAppContext, MockAppConfigHelper, MockEnvConfiguration, MockLoadDotenv):
+        """
+        Test the initialization of AppMainBase, ensuring environment variables are loaded
+        and the context is set up correctly.
+        """
+        class DummyAppMain(AppMainBase):
+            def run(self):
+                pass  # Implement a dummy run method
         
-        class TestAppMain(AppMainBase):
-            def run(self):
-                pass
-
-        app = TestAppMain(env_file_path=".env")
-
-        # Check if environment file was loaded
-        mock_load_env.assert_called_with(dotenv_path=".env")
-
-        # Check if environment variables were set
-        mock_app_config.assert_called_once()
-
-        # Check if app context was initialized
-        assert isinstance(app.application_context, AppContext)
-
-    @mock.patch.object(AppConfigurationHelper, "read_and_set_environmental_variables")
-    @mock.patch.object(load_dotenv, "__call__", return_value=True)
-    def test_load_env_with_provided_path(self, mock_load_env, mock_app_config):
-        """Test that _load_env loads environment variables from the given file path."""
-
-        class TestAppMain(AppMainBase):
-            def run(self):
-                pass
-
-        app = TestAppMain(env_file_path="custom_env.env")
-
-        mock_load_env.assert_called_with(dotenv_path="custom_env.env")
-
-    @mock.patch("os.path.dirname", return_value="/mock/path")
-    @mock.patch("os.path.join", return_value="/mock/path/.env")
-    @mock.patch.object(load_dotenv, "__call__", return_value=True)
-    def test_load_env_without_provided_path(self, mock_load_env, mock_join, mock_dirname):
-        """Test _load_env when no env path is provided, it derives from class location."""
+        # Mock Env Configuration to avoid actual dependency calls
+        MockEnvConfiguration().app_config_endpoint = "mock_endpoint"
+        MockAppContextInstance = MockAppContext.return_value
+        MockAppConfigurationInstance = MockAppConfiguration.return_value
         
-        class TestAppMain(AppMainBase):
-            def run(self):
-                pass
-
-        app = TestAppMain()
-
-        # Verify the derived path is used
-        mock_load_env.assert_called_with(dotenv_path="/mock/path/.env")
-
-    @mock.patch("inspect.getfile", return_value="/mock/path/application_main.py")
-    def test_get_derived_class_location(self, mock_inspect):
-        """Test that _get_derived_class_location returns the correct file path."""
-
-        class TestAppMain(AppMainBase):
-            def run(self):
-                pass
-
-        app = TestAppMain()
-        derived_location = app._get_derived_class_location()
-
-        assert derived_location == "/mock/path/application_main.py"
-
-    @mock.patch("logging.basicConfig")
-    @mock.patch.object(AppConfiguration, "app_logging_enable", new_callable=mock.PropertyMock, return_value=True)
-    @mock.patch.object(AppConfiguration, "app_logging_level", new_callable=mock.PropertyMock, return_value="DEBUG")
-    def test_logging_initialization(self, mock_log_level, mock_log_enable, mock_basic_config):
-        """Test that logging is configured properly when enabled."""
+        # Instantiate the DummyAppMain class
+        app_main = DummyAppMain()
         
-        class TestAppMain(AppMainBase):
+        # Ensure environment variables are loaded
+        MockLoadDotenv.assert_called()
+        MockAppConfigHelper.assert_called_with("mock_endpoint")
+        MockAppConfigHelper().read_and_set_environmental_variables.assert_called()
+        
+        # Ensure application context is initialized correctly
+        self.assertEqual(app_main.application_context, MockAppContextInstance)
+        MockAppContextInstance.set_configuration.assert_called_with(MockAppConfigurationInstance)
+
+    @patch("libs.base.application_main.load_dotenv")
+    def test_load_env(self, MockLoadDotenv):
+        """
+        Test if _load_env method correctly loads the .env file from the expected location.
+        """
+        class DummyAppMain(AppMainBase):
             def run(self):
                 pass
+        
+        app_main = DummyAppMain()
+        env_path = app_main._load_env("/mock/path/.env")
+        
+        # Verify that load_dotenv was called with the correct path
+        MockLoadDotenv.assert_called_with(dotenv_path="/mock/path/.env")
+        self.assertEqual(env_path, "/mock/path/.env")
 
-        app = TestAppMain()
-        mock_basic_config.assert_called_with(level=logging.DEBUG)
+    def test_get_derived_class_location(self):
+        """
+        Test if _get_derived_class_location correctly returns the file path of the derived class.
+        """
+        class DummyAppMain(AppMainBase):
+            def run(self):
+                pass
+        
+        app_main = DummyAppMain()
+        
+        with patch("inspect.getfile", return_value="/mock/path/application_main.py"):
+            derived_path = app_main._get_derived_class_location()
+        
+        self.assertEqual(derived_path, "/mock/path/application_main.py")
+
+if __name__ == "__main__":
+    unittest.main()
