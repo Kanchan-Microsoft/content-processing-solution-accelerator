@@ -40,7 +40,8 @@ jobs:
 
           
       - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$PWD/src/ContentProcessor/src:$PWD/src/backend:$PWD/src/backend-test" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=$PWD/src:$PWD/src/ContentProcessor/src:$PWD/src/backend:$PWD/src/backend-test" >> $GITHUB_ENV
+
 
       - name: Check if Backend Test Files Exist
         id: check_backend_tests
