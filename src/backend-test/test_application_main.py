@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 import os
 
 # Import the module to test
-from ..libs.base.application_main import AppMainBase
+from libs.base.application_main import AppMainBase
 
 class TestAppMainBase(unittest.TestCase):
     
