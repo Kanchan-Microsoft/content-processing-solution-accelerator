@@ -37,8 +37,11 @@ jobs:
           pip install -r src/ContentProcessorAPI/requirements.txt
           pip install pytest-cov
           pip install pytest-asyncio
+
+          
       - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$PWD/src/backend" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=$PWD/src:$PWD/src/ContentProcessor/src:$PWD/src/backend:$PWD/src/backend-test" >> $GITHUB_ENV
+
 
       - name: Check if Backend Test Files Exist
         id: check_backend_tests
@@ -54,7 +57,7 @@ jobs:
       - name: Run Backend Tests with Coverage
         if: env.skip_backend_tests == 'false'
         run: |
-          cd src/backend-test
+          pytest src/backend-test
           pytest --cov=. --cov-report=term-missing --cov-report=xml
 
 
