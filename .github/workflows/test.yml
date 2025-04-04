@@ -60,8 +60,6 @@ jobs:
           pytest src/backend-test
           pytest --cov=. --cov-report=term-missing --cov-report=xml
 
-
-
       - name: Skip Backend Tests
         if: env.skip_backend_tests == 'true'
         run: |
