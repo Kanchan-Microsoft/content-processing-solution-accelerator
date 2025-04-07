@@ -26,14 +26,8 @@ jobs:
           pip install -r src/ContentProcessorAPI/requirements.txt
           pip install flake8  # Ensure flake8 is installed
       
-      # Step 4: Verify flake8 installation
-      - name: Verify flake8 installation
-        run: python -m flake8 --version
-
-      - name: Auto-format code
-        run: black .
-          
-      # Step 5: Run all code quality checks
+               
+      # Step 4: Run all code quality checks
       - name: Pylint
         run: |
           echo "Running Pylint..."
