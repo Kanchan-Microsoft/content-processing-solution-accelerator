@@ -1,11 +1,14 @@
 import sys
 import os
+import datetime
+from unittest.mock import patch
 
+# Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
-from ContentProcessorAPI.app.main import app  # Import without `src.`
-
-import datetime
+# Patch the Azure config loading to prevent auth error during test collection
+with patch("ContentProcessorAPI.app.libs.app_configuration.helper.AppConfigurationHelper.read_and_set_environmental_variables"):
+    from ContentProcessorAPI.app.main import app  # Import after mocking to prevent Azure calls
 
 from fastapi.testclient import TestClient
 
