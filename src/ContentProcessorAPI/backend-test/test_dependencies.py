@@ -2,7 +2,7 @@ import pytest
 from fastapi import FastAPI, Depends
 from fastapi.testclient import TestClient
 from src.ContentProcessorAPI.app.dependencies import get_token_header, get_query_token
-from starlette.status import HTTP_400_BAD_REQUEST
+# from starlette.status import HTTP_400_BAD_REQUEST
 
 
 @pytest.fixture
@@ -34,4 +34,3 @@ def test_get_query_token_fails(test_app):
     response = client.get("/query-protected?token=fake")
     assert response.status_code == 400
     assert response.json() == {"detail": "No ... token provided"}
-
