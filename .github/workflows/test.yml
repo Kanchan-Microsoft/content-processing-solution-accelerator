@@ -1,4 +1,4 @@
-name: Test Workflow 
+name: Test Workflow
 on:
   push:
     branches:
@@ -17,10 +17,8 @@ on:
       - demo
 
 jobs:
-
   backend_tests:
     runs-on: ubuntu-latest
-    
 
     steps:
       - name: Checkout code
@@ -29,7 +27,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install Backend Dependencies
         run: |
@@ -37,13 +35,15 @@ jobs:
           pip install -r src/ContentProcessorAPI/requirements.txt
           pip install pytest-cov
           pip install pytest-asyncio
+
       - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$PWD/src/backend" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
       - name: Check if Backend Test Files Exist
         id: check_backend_tests
         run: |
-          if [ -z "$(find src/backend-test -type f -name 'test_*.py')" ]; then
+
+          if [ -z "$(find src/ContentProcessorAPI/app/test_s -type f -name 'test_*.py')" ]; then
             echo "No backend test files found, skipping backend tests."
             echo "skip_backend_tests=true" >> $GITHUB_ENV
           else
@@ -54,10 +54,8 @@ jobs:
       - name: Run Backend Tests with Coverage
         if: env.skip_backend_tests == 'false'
         run: |
-          cd src/backend-test
+          pytest src/ContentProcessorAPI/app/test_s
           pytest --cov=. --cov-report=term-missing --cov-report=xml
-
-
 
       - name: Skip Backend Tests
         if: env.skip_backend_tests == 'true'
@@ -65,13 +63,13 @@ jobs:
           echo "Skipping backend tests because no test files were found."
 
   frontend_tests:
-     runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-     steps:
-       - name: Checkout code
-         uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-       - name: Set up Node.js
-         uses: actions/setup-node@v3
-         with:
-           node-version: '20'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
