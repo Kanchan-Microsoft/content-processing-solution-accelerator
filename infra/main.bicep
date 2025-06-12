@@ -4,6 +4,7 @@ targetScope = 'resourceGroup'
 metadata name = 'Content Processing Solution Accelerator'
 metadata description = 'Bicep template to deploy the Content Processing Solution Accelerator with AVM compliance.'
 
+
 // ========== get up parameters from parameter file ========== //
 @description('Name of the environment to deploy the solution into:')
 param environmentName string
@@ -31,7 +32,7 @@ param resourceGroupLocation string = resourceGroup().location
 @description('The resource name format string')
 param resourceNameFormatString string = '{0}avm-cps'
 @description('Enable WAF for the deployment')
-param enableWaf bool = true
+param enablePrivateNetworking  bool = true
 @description('Enable telemetry for the deployment')
 param enableTelemetry bool = true
 //@description('Resource naming abbreviations')
@@ -59,7 +60,7 @@ var namingAbbrs = loadJsonContent('./abbreviations.json')
 //
 
 // ========== Network Security Group definition ========== //
-module avmNetworkSecurityGroup 'br/public:avm/res/network/network-security-group:0.5.1' = if (enableWaf) {
+module avmNetworkSecurityGroup 'br/public:avm/res/network/network-security-group:0.5.1' = if (enablePrivateNetworking ) {
   name: format(
     resourceNameFormatString,
     '${namingAbbrs.networking.networkSecurityGroup}backend'
@@ -78,7 +79,7 @@ module avmNetworkSecurityGroup 'br/public:avm/res/network/network-security-group
 
 // Securing a custom VNET in Azure Container Apps with Network Security Groups
 // https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration?tabs=workload-profiles
-module avmNetworkSecurityGroup_Containers 'br/public:avm/res/network/network-security-group:0.5.1' = if (enableWaf) {
+module avmNetworkSecurityGroup_Containers 'br/public:avm/res/network/network-security-group:0.5.1' = if (enablePrivateNetworking ) {
   name: format(
     resourceNameFormatString,
     '${namingAbbrs.networking.networkSecurityGroup}containers'
@@ -150,7 +151,7 @@ module avmNetworkSecurityGroup_Containers 'br/public:avm/res/network/network-sec
   }
 }
 
-module avmNetworkSecurityGroup_Bastion 'br/public:avm/res/network/network-security-group:0.5.1' = if (enableWaf) {
+module avmNetworkSecurityGroup_Bastion 'br/public:avm/res/network/network-security-group:0.5.1' = if (enablePrivateNetworking ) {
   name: format(
     resourceNameFormatString,
     '${namingAbbrs.networking.networkSecurityGroup}bastion'
@@ -167,7 +168,7 @@ module avmNetworkSecurityGroup_Bastion 'br/public:avm/res/network/network-securi
   }
 }
 
-module avmNetworkSecurityGroup_Admin 'br/public:avm/res/network/network-security-group:0.5.1' = if (enableWaf) {
+module avmNetworkSecurityGroup_Admin 'br/public:avm/res/network/network-security-group:0.5.1' = if (enablePrivateNetworking ) {
   name: format(
     resourceNameFormatString,
     '${namingAbbrs.networking.networkSecurityGroup}admin'
@@ -191,7 +192,7 @@ module avmNetworkSecurityGroup_Admin 'br/public:avm/res/network/network-security
 // Bastion Hosts : 10.0.1.32/27 - 10.0.1.63
 // VM(s) :
 
-module avmVirtualNetwork 'br/public:avm/res/network/virtual-network:0.6.1' = if (enableWaf) {
+module avmVirtualNetwork 'br/public:avm/res/network/virtual-network:0.6.1' = if (enablePrivateNetworking ) {
   name: format(resourceNameFormatString, namingAbbrs.networking.virtualNetwork)
   params: {
     name: '${namingAbbrs.networking.virtualNetwork}${solution_prefix}'
@@ -242,7 +243,7 @@ var openAiPrivateDnsZones = {
 
 @batchSize(1)
 module avmPrivateDnsZoneAiServices 'br/public:avm/res/network/private-dns-zone:0.7.1' = [
-  for zone in items(openAiPrivateDnsZones): if (enableWaf) {
+  for zone in items(openAiPrivateDnsZones): if (enablePrivateNetworking ) {
     name: zone.key
     params: {
       name: zone.key
@@ -262,7 +263,7 @@ var storagePrivateDnsZones = {
 
 @batchSize(1)
 module avmPrivateDnsZoneStorages 'br/public:avm/res/network/private-dns-zone:0.7.1' = [
-  for zone in items(storagePrivateDnsZones): if (enableWaf) {
+  for zone in items(storagePrivateDnsZones): if (enablePrivateNetworking ) {
     name: 'private-dns-zone-storage-${zone.value}'
     params: {
       name: zone.key
@@ -281,7 +282,7 @@ var aiHubPrivateDnsZones = {
 
 @batchSize(1)
 module avmPrivateDnsZoneAiFoundryWorkspace 'br/public:avm/res/network/private-dns-zone:0.7.1' = [
-  for (zone, i) in items(aiHubPrivateDnsZones): if (enableWaf) {
+  for (zone, i) in items(aiHubPrivateDnsZones): if (enablePrivateNetworking ) {
     name: 'private-dns-zone-aifoundry-workspace-${zone.value}-${i}'
     params: {
       name: zone.key
@@ -296,7 +297,7 @@ module avmPrivateDnsZoneAiFoundryWorkspace 'br/public:avm/res/network/private-dn
 var cosmosdbMongoPrivateDnsZones = {
   'privatelink.mongo.cosmos.azure.com': 'cosmosdb'
 }
-module avmPrivateDnsZoneCosmosMongoDB 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enableWaf) {
+module avmPrivateDnsZoneCosmosMongoDB 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enablePrivateNetworking ) {
   name: 'private-dns-zone-cosmos-mongo'
   params: {
     name: items(cosmosdbMongoPrivateDnsZones)[0].key
@@ -313,7 +314,7 @@ module avmPrivateDnsZoneCosmosMongoDB 'br/public:avm/res/network/private-dns-zon
 // }
 
 // module avmPrivateDnsZonesAppStorage 'br/public:avm/res/network/private-dns-zone:0.7.1' = [
-//   for (zone, i) in items(appStoragePrivateDnsZones): if (enableWaf) {
+//   for (zone, i) in items(appStoragePrivateDnsZones): if (enablePrivateNetworking ) {
 //     name: 'private-dns-zone-app-storage-${zone.value}-${i}'
 //     params: {
 //       name: zone.key
@@ -329,7 +330,7 @@ var appConfigPrivateDnsZones = {
   'privatelink.azconfig.io': 'appconfig'
 }
 
-module avmPrivateDnsZoneAppConfig 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enableWaf) {
+module avmPrivateDnsZoneAppConfig 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enablePrivateNetworking ) {
   name: 'private-dns-zone-app-config'
   params: {
     name: items(appConfigPrivateDnsZones)[0].key
@@ -344,7 +345,7 @@ var keyVaultPrivateDnsZones = {
   'privatelink.vaultcore.azure.net': 'keyvault'
 }
 
-module avmPrivateDnsZoneKeyVault 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enableWaf) {
+module avmPrivateDnsZoneKeyVault 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enablePrivateNetworking ) {
   name: 'private-dns-zone-key-vault'
   params: {
     name: items(keyVaultPrivateDnsZones)[0].key
@@ -359,7 +360,7 @@ var containerRegistryPrivateDnsZones = {
   'privatelink.azurecr.io': 'containerregistry'
 }
 
-module avmPrivateDnsZoneContainerRegistry 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enableWaf) {
+module avmPrivateDnsZoneContainerRegistry 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enablePrivateNetworking ) {
   name: 'private-dns-zone-container-registry'
   params: {
     name: items(containerRegistryPrivateDnsZones)[0].key
@@ -437,7 +438,7 @@ module avmKeyVault './modules/key-vault.bicep' = {
     enableVaultForDiskEncryption: true
     enableVaultForTemplateDeployment: true
     softDeleteRetentionInDays: 7
-    publicNetworkAccess: (enableWaf) ? 'Disabled' : 'Enabled'
+    publicNetworkAccess: (enablePrivateNetworking ) ? 'Disabled' : 'Enabled'
     // privateEndpoints omitted for now, as not in strongly-typed params
   }
   scope: resourceGroup(resourceGroup().name)
@@ -491,9 +492,9 @@ module avmStorageAccount 'br/public:avm/res/storage/storage-account:0.20.0' = {
     accessTier: 'Hot'
 
     //<======================= WAF related parameters
-    allowBlobPublicAccess: (!enableWaf) // Disable public access when WAF is enabled
-    publicNetworkAccess: (enableWaf) ? 'Disabled' : 'Enabled'
-    privateEndpoints: (enableWaf)
+    allowBlobPublicAccess: (!enablePrivateNetworking ) // Disable public access when WAF is enabled
+    publicNetworkAccess: (enablePrivateNetworking ) ? 'Disabled' : 'Enabled'
+    privateEndpoints: (enablePrivateNetworking )
       ? [
           {
             name: 'storage-private-endpoint-blob'
@@ -652,7 +653,7 @@ module avmStorageAccount_RoleAssignment_avmContainerApp_API_queue 'br/public:avm
 //     enableVaultForDiskEncryption: true
 //     enableVaultForTemplateDeployment: true
 //     softDeleteRetentionInDays: 7
-//     publicNetworkAccess: (enableWaf) ? 'Disabled' : 'Enabled'
+//     publicNetworkAccess: (enablePrivateNetworking ) ? 'Disabled' : 'Enabled'
 //     // privateEndpoints omitted for now, as not in strongly-typed params
 //   }
 //   scope: resourceGroup(resourceGroup().name)
@@ -706,9 +707,9 @@ module avmStorageAccount_RoleAssignment_avmContainerApp_API_queue 'br/public:avm
 //     accessTier: 'Hot'
 
 //     //<======================= WAF related parameters
-//     allowBlobPublicAccess: (!enableWaf) // Disable public access when WAF is enabled
-//     publicNetworkAccess: (enableWaf) ? 'Disabled' : 'Enabled'
-//     privateEndpoints: (enableWaf)
+//     allowBlobPublicAccess: (!enablePrivateNetworking ) // Disable public access when WAF is enabled
+//     publicNetworkAccess: (enablePrivateNetworking ) ? 'Disabled' : 'Enabled'
+//     privateEndpoints: (enablePrivateNetworking )
 //       ? [
 //           {
 //             name: 'storage-private-endpoint-blob'
@@ -1135,7 +1136,7 @@ module avmContainerAppEnv 'br/public:avm/res/app/managed-environment:0.11.1' = {
     platformReservedCidr: '172.17.17.0/24'
     platformReservedDnsIP: '172.17.17.17'
 
-    infrastructureSubnetResourceId: (enableWaf)
+    infrastructureSubnetResourceId: (enablePrivateNetworking )
       ? avmVirtualNetwork.outputs.subnetResourceIds[1] // Use the container app subnet
       : null // Use the container app subnet
   }
@@ -1436,12 +1437,12 @@ module avmCosmosDB 'br/public:avm/res/document-db/database-account:0.15.0' = {
 
     // WAF related parameters
     networkRestrictions: {
-      publicNetworkAccess: (enableWaf) ? 'Disabled' : 'Enabled'
+      publicNetworkAccess: (enablePrivateNetworking ) ? 'Disabled' : 'Enabled'
       ipRules: []
       virtualNetworkRules: []
     }
 
-    privateEndpoints: (enableWaf)
+    privateEndpoints: (enablePrivateNetworking )
       ? [
           {
             name: 'cosmosdb-private-endpoint'
@@ -1587,7 +1588,7 @@ module avmAppConfig 'br/public:avm/res/app-configuration/configuration-store:0.6
   }
 }
 
-module avmAppConfig_update 'br/public:avm/res/app-configuration/configuration-store:0.6.3' = if (enableWaf) {
+module avmAppConfig_update 'br/public:avm/res/app-configuration/configuration-store:0.6.3' = if (enablePrivateNetworking ) {
   name: format(
     resourceNameFormatString,
     '${namingAbbrs.developerTools.appConfigurationStore}-update'

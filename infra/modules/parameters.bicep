@@ -49,6 +49,9 @@ param resourceNameFormatString string = '{0}avm-cps'
 @description('Enable WAF for the deployment')
 param enableWaf bool = false
 
+@description('Enable Private Netorking for the deployment')
+param enablePrivateNetworking bool = false
+
 @description('Enable telemetry for the deployment')
 param enableTelemetry bool = true
 
@@ -73,6 +76,7 @@ output publicContainerImageEndpoint string = publicContainerImageEndpoint
 output resourceGroupLocation string = resourceGroupLocation
 output resourceNameFormatString string = resourceNameFormatString
 output enableWaf bool = enableWaf
+output enablePrivateNetworking bool = enablePrivateNetworking
 output enableTelemetry bool = enableTelemetry
 output namingAbbrs object = namingAbbrs
 output tags object = tags
