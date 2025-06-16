@@ -16,6 +16,9 @@ param appInsightsName string
 @description('The name of the Log Analytics Workspace resource')
 param logAnalyticsWorkspaceName string
 
+@description('Optional: Existing Log Analytics Workspace Resource ID')
+param existingLogAnalyticsWorkspaceId string = '' 
+
 @description('The location for the resources')
 param location string
 
@@ -49,7 +52,12 @@ param requestSource string = 'rest'
 @description('Tags to be applied to the resources')
 param tags object = {}
 
-module avmLogAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0.11.2' = {
+var useExistingWorkspace = existingLogAnalyticsWorkspaceId != ''
+var existingLawSubscription = useExistingWorkspace ? split(existingLogAnalyticsWorkspaceId, '/')[2] : ''
+var existingLawResourceGroup = useExistingWorkspace ? split(existingLogAnalyticsWorkspaceId, '/')[4] : ''
+var existingLawName = useExistingWorkspace ? split(existingLogAnalyticsWorkspaceId, '/')[8] : ''
+
+module avmLogAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0.11.2' = if (!useExistingWorkspace) {
   name: 'deploy_log_analytics_workspace'
   params: {
     name: logAnalyticsWorkspaceName
@@ -61,12 +69,17 @@ module avmLogAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspac
   }
 }
 
+resource existingLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = if (useExistingWorkspace) {
+  name: existingLawName
+  scope: resourceGroup(existingLawSubscription ,existingLawResourceGroup)
+}
+
 module avmApplicationInsights 'br/public:avm/res/insights/component:0.6.0' = {
   name: 'deploy_application_insights'
   params: {
     name: appInsightsName
     location: location
-    workspaceResourceId: avmLogAnalyticsWorkspace.outputs.resourceId
+    workspaceResourceId: useExistingWorkspace ? existingLogAnalyticsWorkspaceId : avmLogAnalyticsWorkspace.outputs.resourceId
     kind: kind
     applicationType: applicationType
     disableIpMasking: disableIpMasking
@@ -78,9 +91,11 @@ module avmApplicationInsights 'br/public:avm/res/insights/component:0.6.0' = {
   }
 }
 
+var lawKeys = useExistingWorkspace ? listKeys(existingLogAnalyticsWorkspace.id, '2020-08-01') : null
+
 output applicationInsightsId string = avmApplicationInsights.outputs.resourceId
 output logAnalyticsWorkspaceId string = avmLogAnalyticsWorkspace.outputs.logAnalyticsWorkspaceId
-output logAnalyticsWorkspaceResourceId string = avmLogAnalyticsWorkspace.outputs.resourceId
-output logAnalyticsWorkspaceName string = avmLogAnalyticsWorkspace.outputs.name
+output logAnalyticsWorkspaceResourceId string = useExistingWorkspace ? existingLogAnalyticsWorkspaceId : avmLogAnalyticsWorkspace.outputs.resourceId
+output logAnalyticsWorkspaceName string = useExistingWorkspace ? existingLogAnalyticsWorkspace.name : avmLogAnalyticsWorkspace.outputs.name
 @secure()
-output logAnalyticsWorkspacePrimaryKey string = avmLogAnalyticsWorkspace.outputs.primarySharedKey
+output logAnalyticsWorkspacePrimaryKey string = useExistingWorkspace ? lawKeys.primarySharedKey : avmLogAnalyticsWorkspace.outputs.primarySharedKey

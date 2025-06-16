@@ -45,6 +45,9 @@ param tags object = {
 @description('Set to true to use local build for container app images, otherwise use container registry images')
 param useLocalBuild bool = false
 
+@description('Optional: Existing Log Analytics Workspace Resource ID')
+param existingLogAnalyticsWorkspaceId string = '' 
+
 // ========== Solution Prefix Variable ========== //
 var solution_prefix = 'cps-${padLeft(take(toLower(uniqueString(subscription().id, environmentName, resourceGroup().location)), 12), 12, '0')}'
 // ========== Resource Naming Abbreviations ========== // 
@@ -297,6 +300,7 @@ module avmPrivateDnsZoneAiFoundryWorkspace 'br/public:avm/res/network/private-dn
 var cosmosdbMongoPrivateDnsZones = {
   'privatelink.mongo.cosmos.azure.com': 'cosmosdb'
 }
+
 module avmPrivateDnsZoneCosmosMongoDB 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enablePrivateNetworking ) {
   name: 'private-dns-zone-cosmos-mongo'
   params: {
@@ -388,6 +392,7 @@ module avmAppInsightsLogAnalyticsWorkspace './modules/app-insights.bicep' = {
       flowType: 'Bluefield'
       kind: 'web'
       logAnalyticsWorkspaceName: '${namingAbbrs.managementGovernance.logAnalyticsWorkspace}${solution_prefix}'
+      existingLogAnalyticsWorkspaceId: existingLogAnalyticsWorkspaceId
       publicNetworkAccessForQuery: 'Enabled'
       requestSource: 'rest'
       retentionInDays: 30
