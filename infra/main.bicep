@@ -277,24 +277,24 @@ module avmPrivateDnsZoneStorages 'br/public:avm/res/network/private-dns-zone:0.7
   }
 ]
 
-// Private DNS Zone for AI Foundry Workspace
-var aiHubPrivateDnsZones = {
-  'privatelink.api.azureml.ms': 'amlworkspace'
-  'privatelink.notebooks.azure.net': 'amlworkspace'
-}
+// // Private DNS Zone for AI Foundry Workspace
+// var aiHubPrivateDnsZones = {
+//   'privatelink.api.azureml.ms': 'amlworkspace'
+//   'privatelink.notebooks.azure.net': 'amlworkspace'
+// }
 
-@batchSize(1)
-module avmPrivateDnsZoneAiFoundryWorkspace 'br/public:avm/res/network/private-dns-zone:0.7.1' = [
-  for (zone, i) in items(aiHubPrivateDnsZones): if (enablePrivateNetworking ) {
-    name: 'private-dns-zone-aifoundry-workspace-${zone.value}-${i}'
-    params: {
-      name: zone.key
-      tags: tags
-      enableTelemetry: enableTelemetry
-      virtualNetworkLinks: [{ virtualNetworkResourceId: avmVirtualNetwork.outputs.resourceId }]
-    }
-  }
-]
+// @batchSize(1)
+// module avmPrivateDnsZoneAiFoundryWorkspace 'br/public:avm/res/network/private-dns-zone:0.7.1' = [
+//   for (zone, i) in items(aiHubPrivateDnsZones): if (enablePrivateNetworking ) {
+//     name: 'private-dns-zone-aifoundry-workspace-${zone.value}-${i}'
+//     params: {
+//       name: zone.key
+//       tags: tags
+//       enableTelemetry: enableTelemetry
+//       virtualNetworkLinks: [{ virtualNetworkResourceId: avmVirtualNetwork.outputs.resourceId }]
+//     }
+//   }
+// ]
 
 // Private DNS Zone for Azure Cosmos DB
 var cosmosdbMongoPrivateDnsZones = {
@@ -811,10 +811,11 @@ module avmStorageAccount_RoleAssignment_avmContainerApp_API_queue 'br/public:avm
 // }
 
 // // ========== AI Foundry and related resources ========== //
-module avmAiServices 'br/public:avm/res/cognitive-services/account:0.10.2' = {
+module avmAiServices 'br/public:avm/res/cognitive-services/account:0.11.0' = {
   name: format(resourceNameFormatString, namingAbbrs.ai.aiServices)
   params: {
     name: '${namingAbbrs.ai.aiServices}${solution_prefix}'
+    allowProjectManagement: true
     location: resourceGroupLocation
     sku: 'S0'
     managedIdentities: { systemAssigned: true }
@@ -848,37 +849,36 @@ module avmAiServices 'br/public:avm/res/cognitive-services/account:0.10.2' = {
     ]
 
     // WAF related parameters
-    //publicNetworkAccess: (deployment_param.enable_waf) ? 'Disabled' : 'Enabled'
-    publicNetworkAccess: 'Enabled' // Always enabled for AI Services
-    // privateEndpoints: (deployment_param.enable_waf)
-    //   ? [
-    //       {
-    //         name: 'ai-services-private-endpoint'
-    //         privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
-    //         privateDnsZoneGroup: {
-    //           privateDnsZoneGroupConfigs: [
-    //             {
-    //               name: 'ai-services-dns-zone-cognitiveservices'
-    //               privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[0].outputs.resourceId
-    //             }
-    //             {
-    //               name: 'ai-services-dns-zone-openai'
-    //               privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[1].outputs.resourceId
-    //             }
-    //             {
-    //               name: 'ai-services-dns-zone-azure'
-    //               privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[2].outputs.resourceId
-    //             }
-    //             {
-    //               name: 'ai-services-dns-zone-contentunderstanding'
-    //               privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[3].outputs.resourceId
-    //             }
-    //           ]
-    //         }
-    //         subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
-    //       }
-    //     ]
-    //   : []
+    publicNetworkAccess: (enablePrivateNetworking ) ? 'Disabled' : 'Enabled'
+    privateEndpoints: (enablePrivateNetworking)
+      ? [
+          {
+            name: 'ai-services-private-endpoint'
+            privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
+            privateDnsZoneGroup: {
+              privateDnsZoneGroupConfigs: [
+                {
+                  name: 'ai-services-dns-zone-cognitiveservices'
+                  privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[0].outputs.resourceId
+                }
+                {
+                  name: 'ai-services-dns-zone-openai'
+                  privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[1].outputs.resourceId
+                }
+                {
+                  name: 'ai-services-dns-zone-azure'
+                  privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[2].outputs.resourceId
+                }
+                {
+                  name: 'ai-services-dns-zone-contentunderstanding'
+                  privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[3].outputs.resourceId
+                }
+              ]
+            }
+            subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
+          }
+        ]
+      : []
   }
 }
 
@@ -910,30 +910,30 @@ module avmAiServices_cu 'br/public:avm/res/cognitive-services/account:0.10.2' = 
     customSubDomainName: 'aicu-${solution_prefix}'
     disableLocalAuth: true
 
-    publicNetworkAccess: 'Enabled' // Always enabled for AI Services
+    //publicNetworkAccess: 'Enabled' // Always enabled for AI Services
     // WAF related parameters
-    //   publicNetworkAccess: (deployment_param.enable_waf) ? 'Disabled' : 'Enabled'
-    //   privateEndpoints: (deployment_param.enable_waf)
-    //     ? [
-    //         {
-    //           name: 'aicu-private-endpoint'
-    //           privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
-    //           privateDnsZoneGroup: {
-    //             privateDnsZoneGroupConfigs: [
-    //               {
-    //                 name: 'aicu-dns-zone-cognitiveservices'
-    //                 privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[0].outputs.resourceId
-    //               }
-    //               {
-    //                 name: 'aicu-dns-zone-contentunderstanding'
-    //                 privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[3].outputs.resourceId
-    //               }
-    //             ]
-    //           }
-    //           subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
-    //         }
-    //       ]
-    //     : []
+      publicNetworkAccess: (enablePrivateNetworking) ? 'Disabled' : 'Enabled'
+      privateEndpoints: (enablePrivateNetworking)
+        ? [
+            {
+              name: 'aicu-private-endpoint'
+              privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
+              privateDnsZoneGroup: {
+                privateDnsZoneGroupConfigs: [
+                  {
+                    name: 'aicu-dns-zone-cognitiveservices'
+                    privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[0].outputs.resourceId
+                  }
+                  {
+                    name: 'aicu-dns-zone-contentunderstanding'
+                    privateDnsZoneResourceId: avmPrivateDnsZoneAiServices[3].outputs.resourceId
+                  }
+                ]
+              }
+              subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
+            }
+          ]
+        : []
   }
 }
 
@@ -947,164 +947,174 @@ module avmAiServices_cu_roleAssignment 'br/public:avm/ptn/authorization/resource
   }
 }
 
-module avmAiServices_storage_hub 'br/public:avm/res/storage/storage-account:0.20.0' = {
-  name: format(resourceNameFormatString, 'aistoragehub-')
+// // Add the new FDP cognitive services module
+module project 'modules/ai-foundry-project.bicep' = {
+  name: format(resourceNameFormatString, 'aifp-')
   params: {
-    name: 'aisthub${replace(solution_prefix, '-', '')}'
-    location: resourceGroupLocation
-    skuName: 'Standard_LRS'
-    kind: 'StorageV2'
-    managedIdentities: { systemAssigned: true }
-    minimumTlsVersion: 'TLS1_2'
-    networkAcls: {
-      bypass: 'AzureServices'
-      defaultAction: 'Allow'
-    }
-    supportsHttpsTrafficOnly: true
-    accessTier: 'Hot'
-    allowBlobPublicAccess: false
-    allowCrossTenantReplication: false
-    allowSharedKeyAccess: false
-    diagnosticSettings: [
-      {
-        //workspaceResourceId: avmLogAnalyticsWorkspace.outputs.resourceId
-        workspaceResourceId: avmAppInsightsLogAnalyticsWorkspace.outputs.logAnalyticsWorkspaceResourceId
-      }
-    ]
-    blobServices: {
-      deleteRetentionPolicyEnabled: false
-      containerDeleteRetentionPolicyDays: 7
-      containerDeleteRetentionPoloicyEnabled: false
-      diagnosticSettings: [
-        {
-          //workspaceResourceId: avmLogAnalyticsWorkspace.outputs.resourceId
-          workspaceResourceId: avmAppInsightsLogAnalyticsWorkspace.outputs.logAnalyticsWorkspaceResourceId
-        }
-      ]
-    }
-
-    roleAssignments: [
-      {
-        principalId: avmManagedIdentity.outputs.principalId
-        roleDefinitionIdOrName: 'Storage Blob Data Contributor'
-      }
-    ]
-
-    publicNetworkAccess: 'Enabled' // Always enabled for AI Storage Hub
-    // WAF related parameters
-    // publicNetworkAccess: (deployment_param.enable_waf) ? 'Disabled' : 'Enabled'
-    // privateEndpoints: (deployment_param.enable_waf)
-    //   ? [
-    //       {
-    //         name: 'aistoragehub-private-endpoint-blob'
-    //         privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
-    //         service: 'blob'
-    //         privateDnsZoneGroup: {
-    //           privateDnsZoneGroupConfigs: [
-    //             {
-    //               name: 'aistoragehub-dns-zone-blob'
-    //               privateDnsZoneResourceId: avmPrivateDnsZoneStorage[0].outputs.resourceId
-    //             }
-    //           ]
-    //         }
-    //         subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
-    //       }
-    //       {
-    //         name: 'aistoragehub-private-endpoint-file'
-    //         privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
-    //         service: 'file'
-    //         privateDnsZoneGroup: {
-    //           privateDnsZoneGroupConfigs: [
-    //             {
-    //               name: 'aistoragehub-dns-zone-file'
-    //               privateDnsZoneResourceId: avmPrivateDnsZoneStorage[2].outputs.resourceId
-    //             }
-    //           ]
-    //         }
-    //         subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
-    //       }
-    //     ]
-    //   : []
+    name: '${namingAbbrs.ai.aiFoundryProject}${solution_prefix}'
+    location: resourceGroup().location
+    aiServicesName: avmAiServices.outputs.name
   }
-}
+} 
 
-module avmAiHub 'br/public:avm/res/machine-learning-services/workspace:0.12.1' = {
-  name: format(resourceNameFormatString, namingAbbrs.ai.aiHub)
-  params: {
-    name: '${namingAbbrs.ai.aiHub}${solution_prefix}'
-    friendlyName: '${namingAbbrs.ai.aiHub}${solution_prefix}'
-    description: 'AI Hub for CPS template'
-    location: resourceGroupLocation
-    sku: 'Basic'
-    managedIdentities: { systemAssigned: true }
-    tags: {
-      app: solution_prefix
-      location: resourceGroupLocation
-    }
-    // dependent resources
-    associatedKeyVaultResourceId: avmKeyVault.outputs.resourceId
-    associatedStorageAccountResourceId: avmAiServices_storage_hub.outputs.resourceId
-    associatedContainerRegistryResourceId: avmContainerRegistry.outputs.resourceId
-    associatedApplicationInsightsResourceId: avmAppInsightsLogAnalyticsWorkspace.outputs.applicationInsightsId
+// module avmAiServices_storage_hub 'br/public:avm/res/storage/storage-account:0.20.0' = {
+//   name: format(resourceNameFormatString, 'aistoragehub-')
+//   params: {
+//     name: 'aisthub${replace(solution_prefix, '-', '')}'
+//     location: resourceGroupLocation
+//     skuName: 'Standard_LRS'
+//     kind: 'StorageV2'
+//     managedIdentities: { systemAssigned: true }
+//     minimumTlsVersion: 'TLS1_2'
+//     networkAcls: {
+//       bypass: 'AzureServices'
+//       defaultAction: 'Allow'
+//     }
+//     supportsHttpsTrafficOnly: true
+//     accessTier: 'Hot'
+//     allowBlobPublicAccess: false
+//     allowCrossTenantReplication: false
+//     allowSharedKeyAccess: false
+//     diagnosticSettings: [
+//       {
+//         //workspaceResourceId: avmLogAnalyticsWorkspace.outputs.resourceId
+//         workspaceResourceId: avmAppInsightsLogAnalyticsWorkspace.outputs.logAnalyticsWorkspaceResourceId
+//       }
+//     ]
+//     blobServices: {
+//       deleteRetentionPolicyEnabled: false
+//       containerDeleteRetentionPolicyDays: 7
+//       containerDeleteRetentionPoloicyEnabled: false
+//       diagnosticSettings: [
+//         {
+//           //workspaceResourceId: avmLogAnalyticsWorkspace.outputs.resourceId
+//           workspaceResourceId: avmAppInsightsLogAnalyticsWorkspace.outputs.logAnalyticsWorkspaceResourceId
+//         }
+//       ]
+//     }
 
-    kind: 'Hub'
-    connections: [
-      {
-        name: 'AzureOpenAI-Connection'
-        category: 'AIServices'
-        target: avmAiServices.outputs.endpoint
-        connectionProperties: {
-          authType: 'AAD'
-        }
-        isSharedToAll: true
+//     roleAssignments: [
+//       {
+//         principalId: avmManagedIdentity.outputs.principalId
+//         roleDefinitionIdOrName: 'Storage Blob Data Contributor'
+//       }
+//     ]
 
-        metadata: {
-          description: 'Connection to Azure OpenAI'
-          ApiType: 'Azure'
-          resourceId: avmAiServices.outputs.resourceId
-        }
-      }
-    ]
+//     publicNetworkAccess: 'Enabled' // Always enabled for AI Storage Hub
+//     // WAF related parameters
+//     // publicNetworkAccess: (deployment_param.enable_waf) ? 'Disabled' : 'Enabled'
+//     // privateEndpoints: (deployment_param.enable_waf)
+//     //   ? [
+//     //       {
+//     //         name: 'aistoragehub-private-endpoint-blob'
+//     //         privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
+//     //         service: 'blob'
+//     //         privateDnsZoneGroup: {
+//     //           privateDnsZoneGroupConfigs: [
+//     //             {
+//     //               name: 'aistoragehub-dns-zone-blob'
+//     //               privateDnsZoneResourceId: avmPrivateDnsZoneStorage[0].outputs.resourceId
+//     //             }
+//     //           ]
+//     //         }
+//     //         subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
+//     //       }
+//     //       {
+//     //         name: 'aistoragehub-private-endpoint-file'
+//     //         privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
+//     //         service: 'file'
+//     //         privateDnsZoneGroup: {
+//     //           privateDnsZoneGroupConfigs: [
+//     //             {
+//     //               name: 'aistoragehub-dns-zone-file'
+//     //               privateDnsZoneResourceId: avmPrivateDnsZoneStorage[2].outputs.resourceId
+//     //             }
+//     //           ]
+//     //         }
+//     //         subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
+//     //       }
+//     //     ]
+//     //   : []
+//   }
+// }
 
-    publicNetworkAccess: 'Enabled' // Always enabled for AI Hub
-    //<======================= WAF related parameters
-    // publicNetworkAccess: (deployment_param.enable_waf) ? 'Disabled' : 'Enabled'
-    // privateEndpoints: (deployment_param.enable_waf)
-    //   ? [
-    //       {
-    //         name: 'ai-hub-private-endpoint'
-    //         privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
-    //         privateDnsZoneGroup: {
-    //           privateDnsZoneGroupConfigs: [
-    //             {
-    //               name: 'ai-hub-dns-zone-amlworkspace'
-    //               privateDnsZoneResourceId: avmPrivateDnsZoneAiFoundryWorkspace[0].outputs.resourceId
-    //             }
-    //             {
-    //               name: 'ai-hub-dns-zone-notebooks'
-    //               privateDnsZoneResourceId: avmPrivateDnsZoneAiFoundryWorkspace[1].outputs.resourceId
-    //             }
-    //           ]
-    //         }
-    //         subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
-    //       }
-    //     ]
-    //   : []
-  }
-}
+// module avmAiHub 'br/public:avm/res/machine-learning-services/workspace:0.12.1' = {
+//   name: format(resourceNameFormatString, namingAbbrs.ai.aiHub)
+//   params: {
+//     name: '${namingAbbrs.ai.aiHub}${solution_prefix}'
+//     friendlyName: '${namingAbbrs.ai.aiHub}${solution_prefix}'
+//     description: 'AI Hub for CPS template'
+//     location: resourceGroupLocation
+//     sku: 'Basic'
+//     managedIdentities: { systemAssigned: true }
+//     tags: {
+//       app: solution_prefix
+//       location: resourceGroupLocation
+//     }
+//     // dependent resources
+//     associatedKeyVaultResourceId: avmKeyVault.outputs.resourceId
+//     associatedStorageAccountResourceId: avmAiServices_storage_hub.outputs.resourceId
+//     associatedContainerRegistryResourceId: avmContainerRegistry.outputs.resourceId
+//     associatedApplicationInsightsResourceId: avmAppInsightsLogAnalyticsWorkspace.outputs.applicationInsightsId
 
-module avmAiProject 'br/public:avm/res/machine-learning-services/workspace:0.12.1' = {
-  name: format(resourceNameFormatString, namingAbbrs.ai.aiHubProject)
-  params: {
-    name: '${namingAbbrs.ai.aiHubProject}${solution_prefix}'
-    location: resourceGroupLocation
-    managedIdentities: { systemAssigned: true }
-    kind: 'Project'
-    sku: 'Basic'
-    friendlyName: '${namingAbbrs.ai.aiHubProject}${solution_prefix}'
-    hubResourceId: avmAiHub.outputs.resourceId
-  }
-}
+//     kind: 'Hub'
+//     connections: [
+//       {
+//         name: 'AzureOpenAI-Connection'
+//         category: 'AIServices'
+//         target: avmAiServices.outputs.endpoint
+//         connectionProperties: {
+//           authType: 'AAD'
+//         }
+//         isSharedToAll: true
+
+//         metadata: {
+//           description: 'Connection to Azure OpenAI'
+//           ApiType: 'Azure'
+//           resourceId: avmAiServices.outputs.resourceId
+//         }
+//       }
+//     ]
+
+//     publicNetworkAccess: 'Enabled' // Always enabled for AI Hub
+//     //<======================= WAF related parameters
+//     // publicNetworkAccess: (deployment_param.enable_waf) ? 'Disabled' : 'Enabled'
+//     // privateEndpoints: (deployment_param.enable_waf)
+//     //   ? [
+//     //       {
+//     //         name: 'ai-hub-private-endpoint'
+//     //         privateEndpointResourceId: avmVirtualNetwork.outputs.resourceId
+//     //         privateDnsZoneGroup: {
+//     //           privateDnsZoneGroupConfigs: [
+//     //             {
+//     //               name: 'ai-hub-dns-zone-amlworkspace'
+//     //               privateDnsZoneResourceId: avmPrivateDnsZoneAiFoundryWorkspace[0].outputs.resourceId
+//     //             }
+//     //             {
+//     //               name: 'ai-hub-dns-zone-notebooks'
+//     //               privateDnsZoneResourceId: avmPrivateDnsZoneAiFoundryWorkspace[1].outputs.resourceId
+//     //             }
+//     //           ]
+//     //         }
+//     //         subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Use the backend subnet
+//     //       }
+//     //     ]
+//     //   : []
+//   }
+// }
+
+// module avmAiProject 'br/public:avm/res/machine-learning-services/workspace:0.12.1' = {
+//   name: format(resourceNameFormatString, namingAbbrs.ai.aiHubProject)
+//   params: {
+//     name: '${namingAbbrs.ai.aiHubProject}${solution_prefix}'
+//     location: resourceGroupLocation
+//     managedIdentities: { systemAssigned: true }
+//     kind: 'Project'
+//     sku: 'Basic'
+//     friendlyName: '${namingAbbrs.ai.aiHubProject}${solution_prefix}'
+//     hubResourceId: avmAiHub.outputs.resourceId
+//   }
+// }
 
 // ========== Container App Environment ========== //
 module avmContainerAppEnv 'br/public:avm/res/app/managed-environment:0.11.1' = {
@@ -1560,9 +1570,8 @@ module avmAppConfig 'br/public:avm/res/app-configuration/configuration-store:0.6
         value: avmStorageAccount.outputs.serviceEndpoints.queue //TODO: replace with actual queue URL
       }
       {
-        name: 'APP_AI_PROJECT_CONN_STR'
-        value: '${resourceGroupLocation}.api.azureml.ms;${subscription().subscriptionId};${resourceGroup().name};${avmAiProject.name}'
-        //TODO: replace with actual AI project connection string
+        name: 'APP_AI_PROJECT_ENDPOINT'
+        value: project.outputs.projectEndpoint
       }
       {
         name: 'APP_COSMOS_CONNSTR'
