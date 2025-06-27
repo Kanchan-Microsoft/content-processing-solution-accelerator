@@ -16,7 +16,6 @@ param probes array = []
 param allowedOrigins array = [] 
 param minReplicas int = 1
 param maxReplicas int = 1
-param useLocalBuild string = 'false'
 
 //Todo: Add Appconfig endpoint as Env variable
 
@@ -34,12 +33,7 @@ resource processorContainerApp 'Microsoft.App/containerApps@2024-03-01' = {
     environmentId: containerEnvId
     workloadProfileName: 'Consumption'
     configuration:{
-      registries: useLocalBuild == 'true' ? [
-        {
-          server: azureContainerRegistry
-          identity: managedIdentityId 
-        }
-      ] : null
+      registries: null
       ingress: enableIngress ? {
         external: true
         transport: 'auto'

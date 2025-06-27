@@ -25,7 +25,7 @@ param maxReplicaContainerWeb int = 1
 // Container related params
 param azureContainerRegistry string
 param containerRegistryReaderId string
-param useLocalBuild string = 'false'
+param imageTag string
 
 var abbrs = loadJsonContent('../abbreviations.json')
 
@@ -76,7 +76,7 @@ module containerApp 'deploy_container_app.bicep' = {
     containerEnvId: containerAppEnvId
     azureContainerRegistry: azureContainerRegistry
     azureContainerRegistryImage: 'contentprocessor'
-    azureContainerRegistryImageTag: 'latest'
+    azureContainerRegistryImageTag: imageTag
     managedIdentityId: containerRegistryReaderId
     containerEnvVars: [
       {
@@ -87,7 +87,6 @@ module containerApp 'deploy_container_app.bicep' = {
     enableIngress: false
     minReplicas: minReplicaContainerApp
     maxReplicas: maxReplicaContainerApp
-    useLocalBuild: useLocalBuild
   }
 }
 
@@ -99,7 +98,7 @@ module containerAppApi 'deploy_container_app.bicep' = {
     containerEnvId: containerAppEnvId
     azureContainerRegistry: azureContainerRegistry
     azureContainerRegistryImage: 'contentprocessorapi'
-    azureContainerRegistryImageTag: 'latest'
+    azureContainerRegistryImageTag: imageTag
     managedIdentityId: containerRegistryReaderId
     allowedOrigins: [containerAppWebEndpoint]
     containerEnvVars: [
@@ -111,7 +110,6 @@ module containerAppApi 'deploy_container_app.bicep' = {
     probes: probes
     minReplicas: minReplicaContainerApi
     maxReplicas: maxReplicaContainerApi
-    useLocalBuild: useLocalBuild
   }
 }
 
@@ -123,7 +121,7 @@ module containerAppWeb 'deploy_container_app.bicep' = {
     containerEnvId: containerAppEnvId
     azureContainerRegistry: azureContainerRegistry
     azureContainerRegistryImage: 'contentprocessorweb'
-    azureContainerRegistryImageTag: 'latest'
+    azureContainerRegistryImageTag: imageTag
     managedIdentityId: containerRegistryReaderId
     containerEnvVars: [
       {
@@ -153,7 +151,6 @@ module containerAppWeb 'deploy_container_app.bicep' = {
     ]
     minReplicas: minReplicaContainerWeb
     maxReplicas: maxReplicaContainerWeb
-    useLocalBuild: useLocalBuild
   }
 }
 

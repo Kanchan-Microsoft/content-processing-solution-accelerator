@@ -3,9 +3,12 @@ param containerEnvName string
 param location string
 
 param logAnalyticsWorkspaceName string
+param logAnalyticsWorkspaceResourceGroup string
+param logAnalyticsWorkspaceSubscription string
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logAnalyticsWorkspaceName
+  scope: resourceGroup(logAnalyticsWorkspaceSubscription, logAnalyticsWorkspaceResourceGroup)
 }
 
 resource containerRegistryReader 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {

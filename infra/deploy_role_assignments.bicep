@@ -9,8 +9,6 @@ param storagePrincipalId string // Resource ID of the Storage account
 param aiServiceCUId string // Resource ID of the Azure AI Content Understanding Service
 param aiServiceId string // Resource ID of the Azure Open AI service
 
-param containerRegistryReaderPrincipalId string
-
 resource appConfigDataReader 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
   scope: resourceGroup()
   name: '516239f1-63e1-4d78-a4de-a74fb236a071'
@@ -128,17 +126,5 @@ resource cognitiveServicesUserRoleAssignment 'Microsoft.Authorization/roleAssign
     principalId: containerAppPrincipalId
     roleDefinitionId: cognitiveServicesUserRole.id
     principalType: 'ServicePrincipal'
-  }
-}
-
-resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(containerRegistryReaderPrincipalId, 'acrpull')
-  scope: resourceGroup()
-  properties: {
-    roleDefinitionId: subscriptionResourceId(
-      'Microsoft.Authorization/roleDefinitions',
-      '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-    ) // AcrPull role
-    principalId: containerRegistryReaderPrincipalId
   }
 }
