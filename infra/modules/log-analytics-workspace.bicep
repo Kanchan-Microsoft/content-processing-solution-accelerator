@@ -42,6 +42,7 @@ resource existingLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces
 
 var lawKeys = useExistingWorkspace ? listKeys(existingLogAnalyticsWorkspace.id, '2020-08-01') : logAnalyticsWorkspace.outputs.primarySharedKey
 
+output name string = useExistingWorkspace ? existingLogAnalyticsWorkspace.name : logAnalyticsWorkspace.outputs.name
 output resourceId string = useExistingWorkspace ? existingLogAnalyticsWorkspace.id : logAnalyticsWorkspace.outputs.resourceId 
 output logAnalyticsWorkspaceId string = useExistingWorkspace ? existingLogAnalyticsWorkspace.properties.customerId : logAnalyticsWorkspace.outputs.logAnalyticsWorkspaceId
 @secure()
