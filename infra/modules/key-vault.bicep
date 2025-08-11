@@ -72,6 +72,16 @@ param networkAcls object = {
 @secure()
 param logAnalyticsWorkspaceResourceId string = ''
 
+// ===== New Parameters for Private Endpoints =====
+@description('Enable private networking for the Key Vault')
+param enablePrivateNetworking bool = false
+
+@description('The Resource ID of the Private DNS Zone for Key Vault')
+param privateDnsZoneResourceId string = ''
+
+@description('The Resource ID of the subnet for the private endpoint')
+param subnetResourceId string = ''
+
 module avmKeyVault 'br/public:avm/res/key-vault/vault:0.13.0' = {
   name: 'deploy_keyvault'
   params: {
@@ -91,6 +101,16 @@ module avmKeyVault 'br/public:avm/res/key-vault/vault:0.13.0' = {
     enableTelemetry: enableTelemetry
     diagnosticSettings: [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }]
     networkAcls: networkAcls
+
+    // Private Endpoint block
+    privateEndpoints: enablePrivateNetworking ? [
+  {
+    name: '${keyvaultName}-pe'
+    subnetResourceId: subnetResourceId
+    privateDnsZoneResourceIds: [ privateDnsZoneResourceId ]
+    groupIds: [ 'vault' ]
+  }
+] : []
   }
 }
 

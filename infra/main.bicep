@@ -458,8 +458,9 @@ module avmManagedIdentity './modules/managed-identity.bicep' = {
 }
 
 // ========== Key Vault Module ========== //
-
 module avmKeyVault './modules/key-vault.bicep' = {
+  name: 'deploy_keyvault_module'
+  scope: resourceGroup(resourceGroup().name)
   params: {
     keyvaultName: 'kv-${solutionPrefix}'
     location: resourceGroupLocation
@@ -486,9 +487,12 @@ module avmKeyVault './modules/key-vault.bicep' = {
       bypass: 'AzureServices'
       defaultAction: 'Deny'
     }
-    // privateEndpoints omitted for now, as not in strongly-typed params
+
+    // Private endpoint configuration
+    enablePrivateNetworking: enablePrivateNetworking
+    privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.keyVault].outputs.resourceId
+    subnetResourceId: avmVirtualNetwork.outputs.subnetResourceIds[0] // Using backend subnet
   }
-  scope: resourceGroup(resourceGroup().name)
 }
 
 module avmContainerRegistry 'modules/container-registry.bicep' = {
