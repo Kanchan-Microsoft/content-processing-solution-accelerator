@@ -102,6 +102,73 @@ param existingLogAnalyticsWorkspaceId string = ''
 @description('Use this parameter to use an existing AI project resource ID')
 param existingFoundryProjectResourceId string = ''
 
+import { bastionHostConfigurationType } from 'modules/account/modules/bastionHost.bicep'
+@description('Optional. Configuration for the Azure Bastion Host. Leave null to omit Bastion creation.')
+param bastionConfiguration bastionHostConfigurationType = {
+  name: 'bastion-${solutionName}'
+  subnet: {
+        name: 'AzureBastionSubnet'
+        addressPrefixes: ['10.0.10.0/23'] // /23 (10.0.10.0 - 10.0.11.255), 512 addresses
+        networkSecurityGroup: {
+          name: 'nsg-AzureBastionSubnet'
+          securityRules: [
+            {
+              name: 'AllowGatewayManager'
+              properties: {
+                access: 'Allow'
+                direction: 'Inbound'
+                priority: 2702
+                protocol: '*'
+                sourcePortRange: '*'
+                destinationPortRange: '443'
+                sourceAddressPrefix: 'GatewayManager'
+                destinationAddressPrefix: '*'
+              }
+            }
+            {
+              name: 'AllowHttpsInBound'
+              properties: {
+                access: 'Allow'
+                direction: 'Inbound'
+                priority: 2703
+                protocol: '*'
+                sourcePortRange: '*'
+                destinationPortRange: '443'
+                sourceAddressPrefix: 'Internet'
+                destinationAddressPrefix: '*'
+              }
+            }
+            {
+              name: 'AllowSshRdpOutbound'
+              properties: {
+                access: 'Allow'
+                direction: 'Outbound'
+                priority: 100
+                protocol: '*'
+                sourcePortRange: '*'
+                destinationPortRanges: ['22', '3389']
+                sourceAddressPrefix: '*'
+                destinationAddressPrefix: 'VirtualNetwork'
+              }
+            }
+            {
+              name: 'AllowAzureCloudOutbound'
+              properties: {
+                access: 'Allow'
+                direction: 'Outbound'
+                priority: 110
+                protocol: 'Tcp'
+                sourcePortRange: '*'
+                destinationPortRange: '443'
+                sourceAddressPrefix: '*'
+                destinationAddressPrefix: 'AzureCloud'
+              }
+            }
+          ]
+        }
+      }
+}
+
 @description('Optional. Enable monitoring for the virtual machine.')
 param enableMonitoring bool = false
 
@@ -1684,9 +1751,28 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.15.0' = if (e
   }
 }
 
+module bastionHost 'modules/account/modules/bastionHost.bicep' = if (!empty(bastionConfiguration)) {
+  name: '${solutionSuffix}-bastionHost'
+  params: {
+    name: bastionConfiguration.?name ?? 'bas-${solutionSuffix}'
+    vnetId: avmVirtualNetwork.outputs.resourceId
+    vnetName: avmVirtualNetwork.outputs.name
+    location: location
+    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
+    subnet: bastionConfiguration.?subnet
+    tags: tags
+    enableTelemetry: enableTelemetry
+  }
+}
+
 // ============ //
 // Outputs      //
 // ============ //
+
+output bastionSubnetId string = bastionHost.outputs.subnetId
+output bastionSubnetName string = bastionHost.outputs.subnetName
+output bastionHostId string = bastionHost.outputs.resourceId
+output bastionHostName string = bastionHost.outputs.name
 
 @description('The name of the Container App used for Web App.')
 output CONTAINER_WEB_APP_NAME string = avmContainerApp_Web.outputs.name
