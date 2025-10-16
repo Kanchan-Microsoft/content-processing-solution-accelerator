@@ -3,6 +3,9 @@
 # Stop script on any error
 set -e
 
+echo "Listing all azd environments..."
+azd env list
+
 echo "🔍 Fetching container app info from azd environment..."
 
 # Load values from azd env
@@ -16,18 +19,28 @@ CONTAINER_API_APP_FQDN=$(azd env get-value CONTAINER_API_APP_FQDN)
 SUBSCRIPTION_ID=$(azd env get-value AZURE_SUBSCRIPTION_ID)
 RESOURCE_GROUP=$(azd env get-value AZURE_RESOURCE_GROUP)
 
+echo "✅ Fetched all values from azd environment."
+
+echo "🔍 Constructing Azure Portal URLs..."
 # Construct Azure Portal URLs
 WEB_APP_PORTAL_URL="https://portal.azure.com/#resource/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.App/containerApps/$CONTAINER_WEB_APP_NAME"
 API_APP_PORTAL_URL="https://portal.azure.com/#resource/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.App/containerApps/$CONTAINER_API_APP_NAME"
+echo "✅ Constructed Azure Portal URLs."
 
+echo "🔍 Determining path to schema registration script..."
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "✅ Script directory: $SCRIPT_DIR"
 
+echo "Changing directory to schema registration script path..."
 # Go from infra/scripts → root → src
 DATA_SCRIPT_PATH="$SCRIPT_DIR/../../src/ContentProcessorAPI/samples/schemas"
+echo "✅ Data script path: $DATA_SCRIPT_PATH"
 
+echo "Normalizing the data script path..."
 # Normalize the path (optional, in case of ../..)
 DATA_SCRIPT_PATH="$(realpath "$DATA_SCRIPT_PATH")"
+echo "✅ Normalized data script path: $DATA_SCRIPT_PATH"
 
 # Output
 echo ""
