@@ -1079,12 +1079,13 @@ module avmCosmosDB 'br/public:avm/res/document-db/database-account:0.15.0' = {
 module avmAppConfig 'br/public:avm/res/app-configuration/configuration-store:0.6.3' = {
   name: format(resourceNameFormatString, 'appcs-')
   params: {
-    name: 'appcs-${solutionPrefix}'
+    name: 'appcs-${solutionPrefix}-x'
     location: resourceGroupLocation
     tags: {
       app: solutionPrefix
       location: resourceGroupLocation
     }
+    enablePurgeProtection: false
     enableTelemetry: enableTelemetry
     managedIdentities: { systemAssigned: true }
     sku: 'Standard'
@@ -1228,8 +1229,9 @@ module avmAppConfig 'br/public:avm/res/app-configuration/configuration-store:0.6
 module avmAppConfig_update 'br/public:avm/res/app-configuration/configuration-store:0.6.3' = if (enablePrivateNetworking) {
   name: format(resourceNameFormatString, 'appcs-update')
   params: {
-    name: 'appcs-${solutionPrefix}'
+    name: 'appcs-${solutionPrefix}-x'
     location: resourceGroupLocation
+    enablePurgeProtection: false
     enableTelemetry: enableTelemetry
     tags: tags
     publicNetworkAccess: 'Disabled'
