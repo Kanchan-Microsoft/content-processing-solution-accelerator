@@ -65,7 +65,7 @@ param resourceGroupLocation string = resourceGroup().location
 param resourceNameFormatString string = '{0}avm-cps'
 
 @description('Optional. Enable WAF for the deployment.')
-param enablePrivateNetworking bool
+param enablePrivateNetworking bool = false
 
 @description('Optional. Enable/Disable usage telemetry for module.')
 param enableTelemetry bool = true
