@@ -9,14 +9,20 @@ azd env list
 echo "🔍 Fetching container app info from azd environment..."
 
 # Load values from azd env
+azd env get-value CONTAINER_WEB_APP_NAME
 CONTAINER_WEB_APP_NAME=$(azd env get-value CONTAINER_WEB_APP_NAME)
+azd env get-value CONTAINER_WEB_APP_FQDN
 CONTAINER_WEB_APP_FQDN=$(azd env get-value CONTAINER_WEB_APP_FQDN)
 
+azd env get-value CONTAINER_API_APP_NAME
 CONTAINER_API_APP_NAME=$(azd env get-value CONTAINER_API_APP_NAME)
+azd env get-value CONTAINER_API_APP_FQDN
 CONTAINER_API_APP_FQDN=$(azd env get-value CONTAINER_API_APP_FQDN)
 
 # Get subscription and resource group (assuming same for both)
+azd env get-value AZURE_SUBSCRIPTION_ID
 SUBSCRIPTION_ID=$(azd env get-value AZURE_SUBSCRIPTION_ID)
+azd env get-value AZURE_RESOURCE_GROUP
 RESOURCE_GROUP=$(azd env get-value AZURE_RESOURCE_GROUP)
 
 echo "✅ Fetched all values from azd environment."
