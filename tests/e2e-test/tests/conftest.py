@@ -42,6 +42,12 @@ def login_logout():
         browser.close()
 
 
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_html_report_title(report):
+    """Customize HTML report title."""
+    report.title = "Test Automation Content Processing"
+
 @pytest.hookimpl(tryfirst=True)
 def pytest_runtest_setup(item):
     """
