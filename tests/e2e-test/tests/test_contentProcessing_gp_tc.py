@@ -1,17 +1,12 @@
+"""
+Test module for Content Processing Solution Accelerator end-to-end tests.
+"""
+
 import logging
-import time
 import pytest
 from pages.HomePage import HomePage
 
 logger = logging.getLogger(__name__)
-
-
-def _timed_refresh(home):
-    """Refresh and wait for processing to complete with timing."""
-    start = time.time()
-    home.refresh()
-    end = time.time()
-    logger.info(f"Refresh process took {end - start:.2f} seconds")
 
 
 def test_content_processing_golden_path(login_logout, request):
@@ -48,7 +43,7 @@ def test_content_processing_golden_path(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 
@@ -69,7 +64,7 @@ def test_content_processing_sections_display(login_logout, request):
     try:
         home.validate_home_page()
         logger.info("Test passed: All sections displayed properly")
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         logger.error("Test failed: All sections display validation", exc_info=True)
         raise
 
@@ -99,7 +94,7 @@ def test_content_processing_file_upload(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 
@@ -128,7 +123,7 @@ def test_content_processing_refresh_screen(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 
@@ -163,7 +158,7 @@ def test_content_processing_schema_validation(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 
@@ -192,7 +187,7 @@ def test_content_processing_import_without_schema(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 
@@ -221,7 +216,7 @@ def test_content_processing_delete_file(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 
@@ -253,7 +248,7 @@ def test_content_processing_search_functionality(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 
@@ -282,7 +277,7 @@ def test_content_processing_collapsible_panels(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 
@@ -311,7 +306,7 @@ def test_content_processing_api_documentation(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 
@@ -343,7 +338,7 @@ def test_content_processing_expandable_process_steps(login_logout, request):
         try:
             action()
             logger.info(f"Step passed: {description}")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(f"Step failed: {description}", exc_info=True)
             raise
 

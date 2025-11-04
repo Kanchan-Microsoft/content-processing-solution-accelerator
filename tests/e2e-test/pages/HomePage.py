@@ -1,3 +1,7 @@
+"""
+Home page module for Content Processing Solution Accelerator.
+"""
+
 import os.path
 import logging
 
@@ -8,7 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class HomePage(BasePage):
-    #HOMEPAGE
+    """
+    Home page object containing all locators and methods for interacting
+    with the Content Processing home page.
+    """
+    # HOMEPAGE
     PROCESSING_QUEUE = "//span[normalize-space()='Processing Queue']"
     OUTPUT_REVIEW = "//span[normalize-space()='Output Review']"
     SOURCE_DOC = "//span[normalize-space()='Source Document']"
@@ -114,6 +122,13 @@ class HomePage(BasePage):
     )
 
     def __init__(self, page):
+        """
+        Initialize the HomePage.
+
+        Args:
+            page: Playwright page object
+        """
+        super().__init__(page)
         self.page = page
 
     def validate_home_page(self):
